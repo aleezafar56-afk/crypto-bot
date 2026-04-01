@@ -33,25 +33,30 @@ diff = close.diff()
 up = diff.clip(lower=0)
 down = -diff.clip(upper=0)
 
-cmo = (up.rolling(20).sum() - down.rolling(20).sum()) / (up.rolling(20).sum() + down.rolling(20).sum())
+sum_up = up.rolling(20).sum()
+sum_down = down.rolling(20).sum()
+
+cmo = (sum_up - sum_down) / (sum_up + sum_down)
 cmo = cmo.fillna(0)
 
-alpha = 2/(34+1)
-v = [close.iloc[0]]
+alpha = 2 / (34 + 1)
 
-for i in range(1,len(close)):
-val = alpha*abs(cmo.iloc[i])*close.iloc[i] + (1-alpha*abs(cmo.iloc[i]))*v[i-1]
-v.append(val)
+vidya_values = [close.iloc[0]]
 
-df["vidya"] = v
+for i in range(1, len(close)):
+value = alpha * abs(cmo.iloc[i]) * close.iloc[i] + (1 - alpha * abs(cmo.iloc[i])) * vidya_values[i-1]
+vidya_values.append(value)
+
+df["vidya"] = vidya_values
 return df
 
-last = {}
+last_signals = {}
 
 while True:
-for s in SYMBOLS:
+for symbol in SYMBOLS:
 try:
-df = vidya(get_data(s))
+df = get_data(symbol)
+df = vidya(df)
 
 prev = df.iloc[-2]
 curr = df.iloc[-1]
@@ -66,13 +71,13 @@ signal = "BUY"
 elif prev["low"] > prev["vidya"] and curr["low"] <= curr["vidya"]:
 signal = "SELL"
 
-if signal and last.get(s) != signal:
-last[s] = signal
+if signal and last_signals.get(symbol) != signal:
+last_signals[symbol] = signal
 
 price = curr["close"]
 
 message = f"""🚨 VIDYA SIGNAL 🚨
-Pair: {s}
+Pair: {symbol}
 Type: {signal}
 Timeframe: 15m
 Price: {price}
