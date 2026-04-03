@@ -51,7 +51,7 @@ def vidya(df):
     return df
 
 last_signal = {}
-
+send_message("BOT IS LIVE 🚀")
 while True:
     for s in SYMBOLS:
         try:
